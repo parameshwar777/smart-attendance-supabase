@@ -98,12 +98,21 @@ export default function Teachers() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [teacherToEdit, setTeacherToEdit] = useState<Teacher | null>(null);
+  const [teacherToDelete, setTeacherToDelete] = useState<Teacher | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+  });
+
+  const [editFormData, setEditFormData] = useState({
     fullName: "",
     email: "",
     password: "",
