@@ -178,11 +178,14 @@ export default function TakeAttendance() {
       .eq("id", classId)
       .single();
 
-    if (classData?.subjects?.section_id) {
+    const subjects = classData?.subjects as any;
+    const sectionId = Array.isArray(subjects) ? subjects[0]?.section_id : subjects?.section_id;
+
+    if (sectionId) {
       const { data: students } = await supabase
         .from("students")
         .select("*")
-        .eq("section_id", classData.subjects.section_id);
+        .eq("section_id", sectionId);
 
       setAllStudents(students || []);
     }
