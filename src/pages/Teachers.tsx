@@ -268,22 +268,21 @@ export default function Teachers() {
     setIsSubmitting(true);
 
     try {
-      // Create teacher via edge function (auto-confirms email)
-      const { data: { session } } = await supabase.auth.getSession();
-      const response = await supabase.functions.invoke("create-teacher", {
-        body: {
-          email: formData.email,
-          password: formData.password,
-          fullName: formData.fullName,
-        },
+      const result = await createTeacherAccount({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
       });
 
-      if (response.error) throw new Error(response.error.message);
-      if (response.data?.error) throw new Error(response.data.error);
+      const created = Boolean((result as { created?: boolean }).created);
+      const message =
+        typeof result.message === "string"
+          ? result.message
+          : `${formData.fullName} has been added as a teacher.`;
 
       toast({
-        title: "Teacher Created",
-        description: `${formData.fullName} has been added as a teacher.`,
+        title: created ? "Teacher Created" : "Teacher Updated",
+        description: message,
       });
 
       setFormData({ fullName: "", email: "", password: "" });
