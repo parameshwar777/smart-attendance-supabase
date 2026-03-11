@@ -68,31 +68,15 @@ Deno.serve(async (req) => {
     let userId: string | null = null;
     let created = false;
 
-    const { data: createdUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: fullName },
-    });
+    // Check if user already exists first
+    const { data: existingUserData } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = existingUserData?.users?.find(
+      (u) => u.email?.toLowerCase() === email
+    );
 
-    if (createError) {
-      const duplicateEmail = /already registered|already exists|duplicate/i.test(createError.message);
-
-      if (!duplicateEmail) {
-        throw createError;
-      }
-
-      const { data: existingProfile, error: profileLookupError } = await supabaseAdmin
-        .from("profiles")
-        .select("user_id")
-        .eq("email", email)
-        .maybeSingle();
-
-      if (profileLookupError || !existingProfile?.user_id) {
-        throw new Error("This email already exists. Ask the user to log in or reset password.");
-      }
-
-      userId = existingProfile.user_id;
+    if (existingUser) {
+      // User exists — update their account
+      userId = existingUser.id;
 
       const { error: updateUserError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         password,
@@ -104,6 +88,22 @@ Deno.serve(async (req) => {
         throw updateUserError;
       }
     } else {
+      // Create new user
+      const { data: createdUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: fullName },
+      });
+
+      if (createError) {
+        throw new Error(
+          typeof createError === "object" && createError !== null && "message" in createError
+            ? (createError as { message: string }).message
+            : String(createError)
+        );
+      }
+
       userId = createdUserData.user?.id ?? null;
       created = true;
     }
