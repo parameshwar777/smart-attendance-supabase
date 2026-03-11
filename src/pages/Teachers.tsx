@@ -251,29 +251,18 @@ export default function Teachers() {
     setIsSubmitting(true);
 
     try {
-      // Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-          },
+      // Create teacher via edge function (auto-confirms email)
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await supabase.functions.invoke("create-teacher", {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          fullName: formData.fullName,
         },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Failed to create user account");
-
-      // Assign teacher role
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: authData.user.id,
-          role: "teacher",
-        });
-
-      if (roleError) throw roleError;
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
 
       toast({
         title: "Teacher Created",
