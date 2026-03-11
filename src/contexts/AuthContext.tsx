@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .eq('user_id', session.user.id)
               .maybeSingle();
             
-            setRole(roleData?.role as AppRole ?? null);
+            setRole((roleData?.role as AppRole) ?? null);
           }, 0);
         } else {
           setRole(null);
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('user_id', session.user.id)
           .maybeSingle()
           .then(({ data: roleData }) => {
-            setRole(roleData?.role as AppRole ?? null);
+            setRole((roleData?.role as AppRole) ?? null);
             setLoading(false);
           });
       } else {
