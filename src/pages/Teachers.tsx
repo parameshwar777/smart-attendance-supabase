@@ -683,11 +683,11 @@ export default function Teachers() {
               <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setAssignDialogOpen(false);
-                    setSelectedTeacher(null);
-                    setSelectedSubjects([]);
-                  }}
+                    onClick={() => {
+                      setAssignDialogOpen(false);
+                      setSelectedTeacher(null);
+                      setSelectedSubjects([]);
+                    }}
                 >
                   Cancel
                 </Button>
