@@ -41,7 +41,7 @@ const parseFunctionError = async (error: unknown): Promise<Error> => {
 
 const invokeTeacherAdminFunction = async <T>(
   functionName: string,
-  body: Record<string, unknown>
+  body: object
 ): Promise<T> => {
   const { data, error } = await supabase.functions.invoke(functionName, { body });
 
