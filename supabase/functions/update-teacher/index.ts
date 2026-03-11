@@ -40,7 +40,7 @@ const requireAdmin = async (supabaseAdmin: ReturnType<typeof createAdminClient>,
     _role: "admin",
   });
 
-  if (roleError || !isAdmin) throw new Error("Only admins can create teachers");
+  if (roleError || !isAdmin) throw new Error("Only admins can edit teachers");
 };
 
 Deno.serve(async (req) => {
@@ -53,95 +53,60 @@ Deno.serve(async (req) => {
     await requireAdmin(supabaseAdmin, req);
 
     const body = await req.json().catch(() => null);
-    const email = body?.email?.trim()?.toLowerCase();
-    const password = body?.password;
+    const userId = body?.userId?.trim();
     const fullName = body?.fullName?.trim();
+    const email = body?.email?.trim()?.toLowerCase();
+    const password = body?.password?.trim();
 
-    if (!email || !password || !fullName) {
+    if (!userId || !fullName || !email) {
       throw new Error("Missing required fields");
     }
 
-    if (password.length < 6) {
+    if (password && password.length < 6) {
       throw new Error("Password must be at least 6 characters");
     }
 
-    let userId: string | null = null;
-    let created = false;
+    const { data: teacherRole, error: teacherRoleError } = await supabaseAdmin
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("role", "teacher")
+      .maybeSingle();
 
-    const { data: createdUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    if (teacherRoleError || !teacherRole) {
+      throw new Error("Teacher role not found for this account");
+    }
+
+    const updatePayload: Record<string, unknown> = {
       email,
-      password,
       email_confirm: true,
       user_metadata: { full_name: fullName },
-    });
+    };
 
-    if (createError) {
-      const duplicateEmail = /already registered|already exists|duplicate/i.test(createError.message);
-
-      if (!duplicateEmail) {
-        throw createError;
-      }
-
-      const { data: existingProfile, error: profileLookupError } = await supabaseAdmin
-        .from("profiles")
-        .select("user_id")
-        .eq("email", email)
-        .maybeSingle();
-
-      if (profileLookupError || !existingProfile?.user_id) {
-        throw new Error("This email already exists. Ask the user to log in or reset password.");
-      }
-
-      userId = existingProfile.user_id;
-
-      const { error: updateUserError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        password,
-        email_confirm: true,
-        user_metadata: { full_name: fullName },
-      });
-
-      if (updateUserError) {
-        throw updateUserError;
-      }
-    } else {
-      userId = createdUserData.user?.id ?? null;
-      created = true;
+    if (password) {
+      updatePayload.password = password;
     }
 
-    if (!userId) {
-      throw new Error("Failed to resolve teacher account");
-    }
-
-    const { error: profileUpsertError } = await supabaseAdmin.from("profiles").upsert(
-      {
-        user_id: userId,
-        full_name: fullName,
-        email,
-      },
-      { onConflict: "user_id" }
+    const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(
+      userId,
+      updatePayload
     );
 
-    if (profileUpsertError) {
-      throw profileUpsertError;
+    if (updateAuthError) {
+      throw updateAuthError;
     }
 
-    const { error: roleError } = await supabaseAdmin.from("user_roles").upsert(
-      { user_id: userId, role: "teacher" },
-      { onConflict: "user_id,role" }
-    );
+    const { error: profileUpdateError } = await supabaseAdmin
+      .from("profiles")
+      .update({ full_name: fullName, email })
+      .eq("user_id", userId);
 
-    if (roleError) {
-      throw roleError;
+    if (profileUpdateError) {
+      throw profileUpdateError;
     }
 
     return new Response(
-      JSON.stringify({
-        user_id: userId,
-        created,
-        message: created
-          ? "Teacher account created successfully"
-          : "Existing account updated and assigned teacher role",
-      }),
+      JSON.stringify({ message: "Teacher updated successfully" }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }

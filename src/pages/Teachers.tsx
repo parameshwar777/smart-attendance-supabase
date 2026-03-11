@@ -22,16 +22,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  createTeacherAccount,
+  deleteTeacherAccount,
+  updateTeacherAccount,
+} from "@/services/teacherAdminService";
 import {
   UserPlus,
   Users,
@@ -90,12 +98,21 @@ export default function Teachers() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [teacherToEdit, setTeacherToEdit] = useState<Teacher | null>(null);
+  const [teacherToDelete, setTeacherToDelete] = useState<Teacher | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+  });
+
+  const [editFormData, setEditFormData] = useState({
     fullName: "",
     email: "",
     password: "",
@@ -251,22 +268,21 @@ export default function Teachers() {
     setIsSubmitting(true);
 
     try {
-      // Create teacher via edge function (auto-confirms email)
-      const { data: { session } } = await supabase.auth.getSession();
-      const response = await supabase.functions.invoke("create-teacher", {
-        body: {
-          email: formData.email,
-          password: formData.password,
-          fullName: formData.fullName,
-        },
+      const result = await createTeacherAccount({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
       });
 
-      if (response.error) throw new Error(response.error.message);
-      if (response.data?.error) throw new Error(response.data.error);
+      const created = Boolean((result as { created?: boolean }).created);
+      const message =
+        typeof result.message === "string"
+          ? result.message
+          : `${formData.fullName} has been added as a teacher.`;
 
       toast({
-        title: "Teacher Created",
-        description: `${formData.fullName} has been added as a teacher.`,
+        title: created ? "Teacher Created" : "Teacher Updated",
+        description: message,
       });
 
       setFormData({ fullName: "", email: "", password: "" });
@@ -329,6 +345,83 @@ export default function Teachers() {
     setSelectedTeacher(teacher);
     setSelectedSubjects(teacher.subjects.map(s => s.id));
     setAssignDialogOpen(true);
+  };
+
+  const openEditDialog = (teacher: Teacher) => {
+    setTeacherToEdit(teacher);
+    setEditFormData({
+      fullName: teacher.full_name,
+      email: teacher.email,
+      password: "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!teacherToEdit) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await updateTeacherAccount({
+        userId: teacherToEdit.user_id,
+        fullName: editFormData.fullName,
+        email: editFormData.email,
+        ...(editFormData.password ? { password: editFormData.password } : {}),
+      });
+
+      toast({
+        title: "Teacher Updated",
+        description:
+          typeof result.message === "string"
+            ? result.message
+            : `${editFormData.fullName} has been updated successfully.`,
+      });
+
+      setEditDialogOpen(false);
+      setTeacherToEdit(null);
+      setEditFormData({ fullName: "", email: "", password: "" });
+      fetchTeachers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update teacher",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteTeacher = async () => {
+    if (!teacherToDelete) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await deleteTeacherAccount({ userId: teacherToDelete.user_id });
+
+      toast({
+        title: "Teacher Deleted",
+        description:
+          typeof result.message === "string"
+            ? result.message
+            : `${teacherToDelete.full_name} has been deleted.`,
+      });
+
+      setTeacherToDelete(null);
+      fetchTeachers();
+      fetchSubjects();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete teacher",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filteredTeachers = teachers.filter(
@@ -499,14 +592,33 @@ export default function Teachers() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openAssignDialog(teacher)}
-                        >
-                          <BookOpen className="h-4 w-4 mr-2" />
-                          Assign Subjects
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openAssignDialog(teacher)}
+                          >
+                            <BookOpen className="h-4 w-4 mr-2" />
+                            Assign Subjects
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => openEditDialog(teacher)}
+                            aria-label={`Edit ${teacher.full_name}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setTeacherToDelete(teacher)}
+                            className="text-destructive"
+                            aria-label={`Delete ${teacher.full_name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -571,15 +683,15 @@ export default function Teachers() {
               <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setAssignDialogOpen(false);
-                    setSelectedTeacher(null);
-                    setSelectedSubjects([]);
-                  }}
+                    onClick={() => {
+                      setAssignDialogOpen(false);
+                      setSelectedTeacher(null);
+                      setSelectedSubjects([]);
+                    }}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleAssignSubjects} disabled={isSubmitting}>
+                <Button onClick={handleAssignSubjects} disabled={isSubmitting || !selectedTeacher}>
                   {isSubmitting && (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   )}
@@ -589,6 +701,95 @@ export default function Teachers() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Teacher Dialog */}
+        <Dialog
+          open={editDialogOpen}
+          onOpenChange={(open) => {
+            setEditDialogOpen(open);
+            if (!open) {
+              setTeacherToEdit(null);
+              setEditFormData({ fullName: "", email: "", password: "" });
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Teacher Account</DialogTitle>
+              <DialogDescription>
+                Update teacher details. Leave password blank to keep it unchanged.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleEditTeacher} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-fullName">Full Name</Label>
+                <Input
+                  id="edit-fullName"
+                  value={editFormData.fullName}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, fullName: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editFormData.email}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, email: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-password">New Password (Optional)</Label>
+                <Input
+                  id="edit-password"
+                  type="password"
+                  placeholder="Leave empty to keep existing password"
+                  value={editFormData.password}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, password: e.target.value })
+                  }
+                  minLength={6}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Save Changes
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Teacher Confirmation */}
+        <AlertDialog open={Boolean(teacherToDelete)} onOpenChange={(open) => !open && setTeacherToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Teacher Account?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {teacherToDelete
+                  ? `This will permanently remove ${teacherToDelete.full_name} and unassign all linked subjects.`
+                  : "This action cannot be undone."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteTeacher} disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </motion.div>
     </DashboardLayout>
   );
