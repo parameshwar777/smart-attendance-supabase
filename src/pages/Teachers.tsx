@@ -347,6 +347,83 @@ export default function Teachers() {
     setAssignDialogOpen(true);
   };
 
+  const openEditDialog = (teacher: Teacher) => {
+    setTeacherToEdit(teacher);
+    setEditFormData({
+      fullName: teacher.full_name,
+      email: teacher.email,
+      password: "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!teacherToEdit) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await updateTeacherAccount({
+        userId: teacherToEdit.user_id,
+        fullName: editFormData.fullName,
+        email: editFormData.email,
+        ...(editFormData.password ? { password: editFormData.password } : {}),
+      });
+
+      toast({
+        title: "Teacher Updated",
+        description:
+          typeof result.message === "string"
+            ? result.message
+            : `${editFormData.fullName} has been updated successfully.`,
+      });
+
+      setEditDialogOpen(false);
+      setTeacherToEdit(null);
+      setEditFormData({ fullName: "", email: "", password: "" });
+      fetchTeachers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update teacher",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteTeacher = async () => {
+    if (!teacherToDelete) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await deleteTeacherAccount({ userId: teacherToDelete.user_id });
+
+      toast({
+        title: "Teacher Deleted",
+        description:
+          typeof result.message === "string"
+            ? result.message
+            : `${teacherToDelete.full_name} has been deleted.`,
+      });
+
+      setTeacherToDelete(null);
+      fetchTeachers();
+      fetchSubjects();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete teacher",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const filteredTeachers = teachers.filter(
     teacher =>
       teacher.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
