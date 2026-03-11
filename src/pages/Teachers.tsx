@@ -592,14 +592,33 @@ export default function Teachers() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openAssignDialog(teacher)}
-                        >
-                          <BookOpen className="h-4 w-4 mr-2" />
-                          Assign Subjects
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openAssignDialog(teacher)}
+                          >
+                            <BookOpen className="h-4 w-4 mr-2" />
+                            Assign Subjects
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => openEditDialog(teacher)}
+                            aria-label={`Edit ${teacher.full_name}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setTeacherToDelete(teacher)}
+                            className="text-destructive"
+                            aria-label={`Delete ${teacher.full_name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
