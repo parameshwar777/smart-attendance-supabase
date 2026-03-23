@@ -641,15 +641,14 @@ export default function Analytics() {
               </div>
               {(role === "teacher" || role === "admin") && (
                 <Button
-                  onClick={handleSendSmsToLowAttendance}
-                  disabled={sendingSms}
-                  variant="destructive"
-                  className="gap-2"
+                  onClick={handleWhatsappAlert}
+                  disabled={loadingLinks}
+                  className="gap-2 bg-[hsl(142,70%,40%)] hover:bg-[hsl(142,70%,35%)] text-white"
                 >
-                  {sendingSms ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" />Sending...</>
+                  {loadingLinks ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" />Loading...</>
                   ) : (
-                    <><MessageSquare className="h-4 w-4" />Send SMS to &lt;80%</>
+                    <><MessageSquare className="h-4 w-4" />WhatsApp &lt;80%</>
                   )}
                 </Button>
               )}
