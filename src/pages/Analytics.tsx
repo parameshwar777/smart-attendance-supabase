@@ -50,6 +50,7 @@ import {
   Activity,
   MessageSquare,
   Loader2,
+  ExternalLink,
 } from "lucide-react";
 
 interface StudentAnalytics {
