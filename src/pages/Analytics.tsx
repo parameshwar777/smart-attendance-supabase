@@ -88,7 +88,9 @@ export default function Analytics() {
   const { toast } = useToast();
   const [students, setStudents] = useState<StudentAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sendingSms, setSendingSms] = useState(false);
+  const [whatsappLinks, setWhatsappLinks] = useState<{ name: string; rollNumber: string; phone: string; percentage: number; url: string }[]>([]);
+  const [showWhatsappDialog, setShowWhatsappDialog] = useState(false);
+  const [loadingLinks, setLoadingLinks] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState<string>("all");
   const [departments, setDepartments] = useState<any[]>([]);
