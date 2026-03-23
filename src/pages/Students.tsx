@@ -192,6 +192,52 @@ export default function Students() {
     }
   };
 
+  const openEditDialog = (student: Student) => {
+    setSelectedStudent(student);
+    setEditForm({
+      full_name: student.full_name,
+      email: student.email || "",
+      phone_number: student.phone_number || "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditStudent = async () => {
+    if (!selectedStudent) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("students")
+        .update({
+          full_name: editForm.full_name,
+          email: editForm.email || null,
+          phone_number: editForm.phone_number || null,
+        })
+        .eq("id", selectedStudent.id);
+      if (error) throw error;
+      toast({ title: "Student Updated", description: "Details saved successfully." });
+      setEditDialogOpen(false);
+      setSelectedStudent(null);
+      fetchStudents();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteStudent = async (student: Student) => {
+    if (!confirm(`Delete ${student.full_name}? This cannot be undone.`)) return;
+    try {
+      const { error } = await supabase.from("students").delete().eq("id", student.id);
+      if (error) throw error;
+      toast({ title: "Student Deleted" });
+      fetchStudents();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
   return (
     <DashboardLayout>
       <motion.div
