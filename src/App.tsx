@@ -88,11 +88,11 @@ function AppRoutes() {
         }
       />
 
-      {/* Protected routes */}
+      {/* Protected routes - Admin & Teacher only */}
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "teacher"]}>
             <Dashboard />
           </ProtectedRoute>
         }
@@ -100,7 +100,7 @@ function AppRoutes() {
       <Route
         path="/departments"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Departments />
           </ProtectedRoute>
         }
@@ -108,7 +108,7 @@ function AppRoutes() {
       <Route
         path="/subjects"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Subjects />
           </ProtectedRoute>
         }
@@ -116,7 +116,7 @@ function AppRoutes() {
       <Route
         path="/teachers"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Teachers />
           </ProtectedRoute>
         }
@@ -124,7 +124,7 @@ function AppRoutes() {
       <Route
         path="/students"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "teacher"]}>
             <Students />
           </ProtectedRoute>
         }
@@ -132,7 +132,7 @@ function AppRoutes() {
       <Route
         path="/register-student"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "teacher"]}>
             <RegisterStudent />
           </ProtectedRoute>
         }
@@ -140,7 +140,7 @@ function AppRoutes() {
       <Route
         path="/face-training"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["teacher"]}>
             <FaceTraining />
           </ProtectedRoute>
         }
@@ -148,7 +148,7 @@ function AppRoutes() {
       <Route
         path="/bulk-upload"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["teacher"]}>
             <BulkUpload />
           </ProtectedRoute>
         }
@@ -156,7 +156,7 @@ function AppRoutes() {
       <Route
         path="/classes"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "teacher"]}>
             <Classes />
           </ProtectedRoute>
         }
@@ -164,7 +164,7 @@ function AppRoutes() {
       <Route
         path="/attendance"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["teacher"]}>
             <TakeAttendance />
           </ProtectedRoute>
         }
@@ -172,7 +172,7 @@ function AppRoutes() {
       <Route
         path="/analytics"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "teacher"]}>
             <Analytics />
           </ProtectedRoute>
         }
@@ -180,16 +180,17 @@ function AppRoutes() {
       <Route
         path="/settings"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Settings />
           </ProtectedRoute>
         }
       />
 
+      {/* Student only */}
       <Route
         path="/student-dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["student"]}>
             <StudentDashboard />
           </ProtectedRoute>
         }
