@@ -6,9 +6,11 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -45,6 +47,8 @@ import {
   GraduationCap,
   PieChart as PieChartIcon,
   Activity,
+  MessageSquare,
+  Loader2,
 } from "lucide-react";
 
 interface StudentAnalytics {
@@ -79,8 +83,10 @@ const PIE_COLORS = [CHART_COLORS.safe, CHART_COLORS.warning, CHART_COLORS.risk];
 
 export default function Analytics() {
   const { role } = useAuth();
+  const { toast } = useToast();
   const [students, setStudents] = useState<StudentAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sendingSms, setSendingSms] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState<string>("all");
   const [departments, setDepartments] = useState<any[]>([]);
@@ -234,6 +240,57 @@ export default function Analytics() {
     const analytics = await Promise.all(analyticsPromises);
     setStudents(analytics);
     setLoading(false);
+  };
+
+  const handleSendSmsToLowAttendance = async () => {
+    const lowStudents = students.filter((s) => s.attendancePercentage < 80);
+    if (lowStudents.length === 0) {
+      toast({ title: "No students below 80%", description: "All students have good attendance." });
+      return;
+    }
+
+    // Get phone numbers for these students
+    setSendingSms(true);
+    try {
+      const { data: studentRecords } = await supabase
+        .from("students")
+        .select("id, phone_number, full_name, roll_number")
+        .in("id", lowStudents.map((s) => s.id));
+
+      const withPhones = (studentRecords || []).filter((s: any) => s.phone_number);
+      if (withPhones.length === 0) {
+        toast({
+          title: "No phone numbers",
+          description: "Students below 80% don't have phone numbers registered. Add phone numbers first.",
+          variant: "destructive",
+        });
+        setSendingSms(false);
+        return;
+      }
+
+      const phoneNumbers = withPhones.map((s: any) => s.phone_number);
+      const message = `Dear Student, your attendance percentage is below 80%. Please attend classes regularly to avoid academic issues. - AI Attendance System`;
+
+      const { data, error } = await supabase.functions.invoke("send-sms", {
+        body: { phone_numbers: phoneNumbers, message },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({
+        title: "SMS Sent Successfully",
+        description: `Alert sent to ${withPhones.length} student(s) with low attendance.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "SMS Failed",
+        description: err.message || "Failed to send SMS. Check Fast2SMS configuration.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingSms(false);
+    }
   };
 
   const filteredStudents = students.filter((student) => {
@@ -565,14 +622,30 @@ export default function Analytics() {
         {/* Students Table */}
         <motion.div variants={itemVariants}>
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Student Attendance Details
-              </CardTitle>
-              <CardDescription>
-                Detailed breakdown of attendance for each student
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5" />
+                  Student Attendance Details
+                </CardTitle>
+                <CardDescription>
+                  Detailed breakdown of attendance for each student
+                </CardDescription>
+              </div>
+              {(role === "teacher" || role === "admin") && (
+                <Button
+                  onClick={handleSendSmsToLowAttendance}
+                  disabled={sendingSms}
+                  variant="destructive"
+                  className="gap-2"
+                >
+                  {sendingSms ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" />Sending...</>
+                  ) : (
+                    <><MessageSquare className="h-4 w-4" />Send SMS to &lt;80%</>
+                  )}
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {loading ? (

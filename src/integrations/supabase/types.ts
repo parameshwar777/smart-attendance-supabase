@@ -206,9 +206,11 @@ export type Database = {
           face_registered: boolean
           full_name: string
           id: string
+          phone_number: string | null
           roll_number: string
           section_id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -217,9 +219,11 @@ export type Database = {
           face_registered?: boolean
           full_name: string
           id?: string
+          phone_number?: string | null
           roll_number: string
           section_id: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -228,9 +232,11 @@ export type Database = {
           face_registered?: boolean
           full_name?: string
           id?: string
+          phone_number?: string | null
           roll_number?: string
           section_id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {

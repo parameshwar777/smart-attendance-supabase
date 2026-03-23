@@ -34,6 +34,7 @@ export default function RegisterStudent() {
     fullName: "",
     rollNumber: "",
     email: "",
+    phoneNumber: "",
     departmentId: "",
     yearId: "",
     sectionId: "",
@@ -224,8 +225,9 @@ export default function RegisterStudent() {
           full_name: formData.fullName,
           roll_number: formData.rollNumber,
           email: formData.email || null,
+          phone_number: formData.phoneNumber || null,
           section_id: formData.sectionId,
-          face_registered: false, // Will be updated after face embedding
+          face_registered: false,
         })
         .select()
         .single();
@@ -245,6 +247,7 @@ export default function RegisterStudent() {
         fullName: "",
         rollNumber: "",
         email: "",
+        phoneNumber: "",
         departmentId: "",
         yearId: "",
         sectionId: "",
@@ -321,6 +324,18 @@ export default function RegisterStudent() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="9876543210"
+                  value={formData.phoneNumber}
+                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">For SMS attendance alerts</p>
               </div>
 
               <div className="space-y-2">

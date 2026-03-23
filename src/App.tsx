@@ -20,13 +20,14 @@ import Classes from "./pages/Classes";
 import TakeAttendance from "./pages/TakeAttendance";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import StudentDashboard from "./pages/StudentDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 // Protected Route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, role, loading } = useAuth();
 
   if (loading) {
     return (
@@ -45,7 +46,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Public Route wrapper (redirect to dashboard if already logged in)
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, role, loading } = useAuth();
 
   if (loading) {
     return (
@@ -56,6 +57,9 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (user) {
+    if (role === "student") {
+      return <Navigate to="/student-dashboard" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -170,6 +174,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/student-dashboard"
+        element={
+          <ProtectedRoute>
+            <StudentDashboard />
           </ProtectedRoute>
         }
       />

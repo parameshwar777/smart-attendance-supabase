@@ -4,11 +4,13 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -18,6 +20,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   GraduationCap,
   Search,
   Plus,
@@ -26,6 +36,10 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -39,6 +53,8 @@ interface Student {
   roll_number: string;
   full_name: string;
   email: string | null;
+  phone_number: string | null;
+  user_id: string | null;
   face_registered: boolean;
   section: {
     name: string;
@@ -59,6 +75,12 @@ export default function Students() {
   const [searchQuery, setSearchQuery] = useState("");
   const [departments, setDepartments] = useState<any[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [creatingLogin, setCreatingLogin] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchDepartments();
@@ -79,6 +101,8 @@ export default function Students() {
         roll_number,
         full_name,
         email,
+        phone_number,
+        user_id,
         face_registered,
         sections (
           name,
@@ -99,6 +123,8 @@ export default function Students() {
         roll_number: s.roll_number,
         full_name: s.full_name,
         email: s.email,
+        phone_number: s.phone_number || null,
+        user_id: s.user_id || null,
         face_registered: s.face_registered,
         section: {
           name: s.sections?.name || "N/A",
@@ -130,12 +156,31 @@ export default function Students() {
   });
 
   const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  const handleCreateLogin = async () => {
+    if (!selectedStudent || !loginPassword) return;
+    setCreatingLogin(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-student-account", {
+        body: { student_id: selectedStudent.id, password: loginPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({
+        title: "Login Created",
+        description: `Email: ${data.email} — share these credentials with the student.`,
+      });
+      setLoginDialogOpen(false);
+      setLoginPassword("");
+      setSelectedStudent(null);
+      fetchStudents();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setCreatingLogin(false);
+    }
   };
 
   return (
@@ -284,6 +329,21 @@ export default function Students() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              {!student.user_id && (
+                                <DropdownMenuItem onClick={() => {
+                                  setSelectedStudent(student);
+                                  setLoginDialogOpen(true);
+                                }}>
+                                  <KeyRound className="mr-2 h-4 w-4" />
+                                  Create Login
+                                </DropdownMenuItem>
+                              )}
+                              {student.user_id && (
+                                <DropdownMenuItem disabled>
+                                  <KeyRound className="mr-2 h-4 w-4 text-muted-foreground" />
+                                  <span className="text-muted-foreground">Login Active</span>
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
@@ -303,6 +363,55 @@ export default function Students() {
             )}
           </CardContent>
         </Card>
+
+        {/* Create Login Dialog */}
+        <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Student Login</DialogTitle>
+              <DialogDescription>
+                Create login credentials for <strong>{selectedStudent?.full_name}</strong> (Roll: {selectedStudent?.roll_number})
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Login Email</Label>
+                <Input
+                  value={selectedStudent ? `${selectedStudent.roll_number.toLowerCase()}@attendance.edu` : ""}
+                  disabled
+                  className="bg-muted"
+                />
+                <p className="text-xs text-muted-foreground">Auto-generated from roll number</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="login-password"
+                    type={showLoginPassword ? "text" : "password"}
+                    placeholder="Min 6 characters"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setLoginDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreateLogin} disabled={creatingLogin || loginPassword.length < 6}>
+                {creatingLogin ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</> : "Create Login"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </DashboardLayout>
   );
