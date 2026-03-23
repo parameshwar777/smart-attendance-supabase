@@ -622,14 +622,30 @@ export default function Analytics() {
         {/* Students Table */}
         <motion.div variants={itemVariants}>
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Student Attendance Details
-              </CardTitle>
-              <CardDescription>
-                Detailed breakdown of attendance for each student
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5" />
+                  Student Attendance Details
+                </CardTitle>
+                <CardDescription>
+                  Detailed breakdown of attendance for each student
+                </CardDescription>
+              </div>
+              {(role === "teacher" || role === "admin") && (
+                <Button
+                  onClick={handleSendSmsToLowAttendance}
+                  disabled={sendingSms}
+                  variant="destructive"
+                  className="gap-2"
+                >
+                  {sendingSms ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" />Sending...</>
+                  ) : (
+                    <><MessageSquare className="h-4 w-4" />Send SMS to &lt;80%</>
+                  )}
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {loading ? (
