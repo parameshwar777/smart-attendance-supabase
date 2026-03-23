@@ -156,12 +156,31 @@ export default function Students() {
   });
 
   const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  const handleCreateLogin = async () => {
+    if (!selectedStudent || !loginPassword) return;
+    setCreatingLogin(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-student-account", {
+        body: { student_id: selectedStudent.id, password: loginPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({
+        title: "Login Created",
+        description: `Email: ${data.email} — share these credentials with the student.`,
+      });
+      setLoginDialogOpen(false);
+      setLoginPassword("");
+      setSelectedStudent(null);
+      fetchStudents();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setCreatingLogin(false);
+    }
   };
 
   return (
