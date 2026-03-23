@@ -37,7 +37,8 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "teacher"] },
+  { label: "My Dashboard", href: "/student-dashboard", icon: LayoutDashboard, roles: ["student"] },
   { label: "Departments", href: "/departments", icon: Building2, roles: ["admin"] },
   { label: "Subjects", href: "/subjects", icon: Calendar, roles: ["admin"] },
   { label: "Teachers", href: "/teachers", icon: Users, roles: ["admin"] },
@@ -46,7 +47,8 @@ const navItems: NavItem[] = [
   { label: "Bulk Upload", href: "/bulk-upload", icon: ClipboardCheck, roles: ["teacher"] },
   { label: "Classes", href: "/classes", icon: Calendar, roles: ["admin", "teacher"] },
   { label: "Take Attendance", href: "/attendance", icon: ClipboardCheck, roles: ["teacher"] },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Analytics", href: "/analytics", icon: BarChart3, roles: ["admin", "teacher"] },
+  { label: "My Analytics", href: "/student-dashboard", icon: BarChart3, roles: ["student"] },
   { label: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
 
