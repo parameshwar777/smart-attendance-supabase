@@ -225,8 +225,9 @@ export default function RegisterStudent() {
           full_name: formData.fullName,
           roll_number: formData.rollNumber,
           email: formData.email || null,
+          phone_number: formData.phoneNumber || null,
           section_id: formData.sectionId,
-          face_registered: false, // Will be updated after face embedding
+          face_registered: false,
         })
         .select()
         .single();
