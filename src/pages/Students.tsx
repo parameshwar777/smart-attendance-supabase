@@ -75,6 +75,12 @@ export default function Students() {
   const [searchQuery, setSearchQuery] = useState("");
   const [departments, setDepartments] = useState<any[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [creatingLogin, setCreatingLogin] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchDepartments();
