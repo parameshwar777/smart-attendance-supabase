@@ -327,6 +327,17 @@ export default function RegisterStudent() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="9876543210"
+                  value={formData.phoneNumber}
+                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">For SMS attendance alerts</p>
+              </div>
+
                 <Label>Department *</Label>
                 <Select
                   value={formData.departmentId}
