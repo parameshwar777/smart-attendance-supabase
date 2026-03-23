@@ -363,6 +363,55 @@ export default function Students() {
             )}
           </CardContent>
         </Card>
+
+        {/* Create Login Dialog */}
+        <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Student Login</DialogTitle>
+              <DialogDescription>
+                Create login credentials for <strong>{selectedStudent?.full_name}</strong> (Roll: {selectedStudent?.roll_number})
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Login Email</Label>
+                <Input
+                  value={selectedStudent ? `${selectedStudent.roll_number.toLowerCase()}@attendance.edu` : ""}
+                  disabled
+                  className="bg-muted"
+                />
+                <p className="text-xs text-muted-foreground">Auto-generated from roll number</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="login-password"
+                    type={showLoginPassword ? "text" : "password"}
+                    placeholder="Min 6 characters"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setLoginDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreateLogin} disabled={creatingLogin || loginPassword.length < 6}>
+                {creatingLogin ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</> : "Create Login"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </DashboardLayout>
   );
