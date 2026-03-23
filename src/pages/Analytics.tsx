@@ -283,7 +283,7 @@ export default function Analytics() {
           rollNumber: s.roll_number,
           phone: s.phone_number,
           percentage,
-          url: `https://wa.me/${phone}?text=${message}`,
+          url: `https://web.whatsapp.com/send?phone=${phone}&text=${message}`,
         };
       });
 
