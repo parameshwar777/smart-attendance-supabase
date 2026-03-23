@@ -242,7 +242,57 @@ export default function Analytics() {
     setLoading(false);
   };
 
-  const filteredStudents = students.filter((student) => {
+  const handleSendSmsToLowAttendance = async () => {
+    const lowStudents = students.filter((s) => s.attendancePercentage < 80);
+    if (lowStudents.length === 0) {
+      toast({ title: "No students below 80%", description: "All students have good attendance." });
+      return;
+    }
+
+    // Get phone numbers for these students
+    setSendingSms(true);
+    try {
+      const { data: studentRecords } = await supabase
+        .from("students")
+        .select("id, phone_number, full_name, roll_number")
+        .in("id", lowStudents.map((s) => s.id));
+
+      const withPhones = (studentRecords || []).filter((s: any) => s.phone_number);
+      if (withPhones.length === 0) {
+        toast({
+          title: "No phone numbers",
+          description: "Students below 80% don't have phone numbers registered. Add phone numbers first.",
+          variant: "destructive",
+        });
+        setSendingSms(false);
+        return;
+      }
+
+      const phoneNumbers = withPhones.map((s: any) => s.phone_number);
+      const message = `Dear Student, your attendance percentage is below 80%. Please attend classes regularly to avoid academic issues. - AI Attendance System`;
+
+      const { data, error } = await supabase.functions.invoke("send-sms", {
+        body: { phone_numbers: phoneNumbers, message },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({
+        title: "SMS Sent Successfully",
+        description: `Alert sent to ${withPhones.length} student(s) with low attendance.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "SMS Failed",
+        description: err.message || "Failed to send SMS. Check Fast2SMS configuration.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingSms(false);
+    }
+  };
+
     const matchesSearch = 
       student.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.rollNumber.toLowerCase().includes(searchQuery.toLowerCase());
