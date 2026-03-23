@@ -247,6 +247,7 @@ export default function RegisterStudent() {
         fullName: "",
         rollNumber: "",
         email: "",
+        phoneNumber: "",
         departmentId: "",
         yearId: "",
         sectionId: "",
