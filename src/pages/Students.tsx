@@ -82,10 +82,13 @@ export default function Students() {
   const [departments, setDepartments] = useState<any[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [creatingLogin, setCreatingLogin] = useState(false);
+  const [editForm, setEditForm] = useState<EditForm>({ full_name: "", email: "", phone_number: "" });
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
