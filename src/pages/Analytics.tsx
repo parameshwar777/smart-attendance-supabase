@@ -293,6 +293,7 @@ export default function Analytics() {
     }
   };
 
+  const filteredStudents = students.filter((student) => {
     const matchesSearch = 
       student.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.rollNumber.toLowerCase().includes(searchQuery.toLowerCase());
