@@ -83,8 +83,10 @@ const PIE_COLORS = [CHART_COLORS.safe, CHART_COLORS.warning, CHART_COLORS.risk];
 
 export default function Analytics() {
   const { role } = useAuth();
+  const { toast } = useToast();
   const [students, setStudents] = useState<StudentAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sendingSms, setSendingSms] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState<string>("all");
   const [departments, setDepartments] = useState<any[]>([]);
