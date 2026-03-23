@@ -735,6 +735,39 @@ export default function Analytics() {
           </Card>
         </motion.div>
       </motion.div>
+
+      {/* WhatsApp Links Dialog */}
+      <Dialog open={showWhatsappDialog} onOpenChange={setShowWhatsappDialog}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-[hsl(142,70%,40%)]" />
+              WhatsApp Alert Links
+            </DialogTitle>
+            <DialogDescription>
+              Click each link to open WhatsApp with a pre-filled attendance alert message.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            {whatsappLinks.map((link, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+                <div>
+                  <p className="font-medium text-sm">{link.name}</p>
+                  <p className="text-xs text-muted-foreground">{link.rollNumber} • {link.phone} • {link.percentage}%</p>
+                </div>
+                <Button
+                  size="sm"
+                  className="gap-1 bg-[hsl(142,70%,40%)] hover:bg-[hsl(142,70%,35%)] text-white"
+                  onClick={() => window.open(link.url, "_blank")}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Send
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
