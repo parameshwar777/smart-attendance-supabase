@@ -95,6 +95,8 @@ export default function Students() {
         roll_number,
         full_name,
         email,
+        phone_number,
+        user_id,
         face_registered,
         sections (
           name,
@@ -115,6 +117,8 @@ export default function Students() {
         roll_number: s.roll_number,
         full_name: s.full_name,
         email: s.email,
+        phone_number: s.phone_number || null,
+        user_id: s.user_id || null,
         face_registered: s.face_registered,
         section: {
           name: s.sections?.name || "N/A",
