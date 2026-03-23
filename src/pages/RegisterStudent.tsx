@@ -338,6 +338,7 @@ export default function RegisterStudent() {
                 <p className="text-xs text-muted-foreground">For SMS attendance alerts</p>
               </div>
 
+              <div className="space-y-2">
                 <Label>Department *</Label>
                 <Select
                   value={formData.departmentId}
