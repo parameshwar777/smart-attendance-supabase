@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +50,7 @@ import {
   Activity,
   MessageSquare,
   Loader2,
+  ExternalLink,
 } from "lucide-react";
 
 interface StudentAnalytics {
@@ -86,7 +88,9 @@ export default function Analytics() {
   const { toast } = useToast();
   const [students, setStudents] = useState<StudentAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sendingSms, setSendingSms] = useState(false);
+  const [whatsappLinks, setWhatsappLinks] = useState<{ name: string; rollNumber: string; phone: string; percentage: number; url: string }[]>([]);
+  const [showWhatsappDialog, setShowWhatsappDialog] = useState(false);
+  const [loadingLinks, setLoadingLinks] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState<string>("all");
   const [departments, setDepartments] = useState<any[]>([]);
@@ -242,15 +246,14 @@ export default function Analytics() {
     setLoading(false);
   };
 
-  const handleSendSmsToLowAttendance = async () => {
+  const handleWhatsappAlert = async () => {
     const lowStudents = students.filter((s) => s.attendancePercentage < 80);
     if (lowStudents.length === 0) {
       toast({ title: "No students below 80%", description: "All students have good attendance." });
       return;
     }
 
-    // Get phone numbers for these students
-    setSendingSms(true);
+    setLoadingLinks(true);
     try {
       const { data: studentRecords } = await supabase
         .from("students")
@@ -261,35 +264,39 @@ export default function Analytics() {
       if (withPhones.length === 0) {
         toast({
           title: "No phone numbers",
-          description: "Students below 80% don't have phone numbers registered. Add phone numbers first.",
+          description: "Students below 80% don't have phone numbers registered.",
           variant: "destructive",
         });
-        setSendingSms(false);
+        setLoadingLinks(false);
         return;
       }
 
-      const phoneNumbers = withPhones.map((s: any) => s.phone_number);
-      const message = `Dear Student, your attendance percentage is below 80%. Please attend classes regularly to avoid academic issues. - AI Attendance System`;
-
-      const { data, error } = await supabase.functions.invoke("send-sms", {
-        body: { phone_numbers: phoneNumbers, message },
+      const links = withPhones.map((s: any) => {
+        const student = lowStudents.find((ls) => ls.id === s.id);
+        const percentage = student?.attendancePercentage ?? 0;
+        const message = encodeURIComponent(
+          `Dear ${s.full_name} (${s.roll_number}), your attendance is ${percentage}% which is below 80%. Please attend classes regularly to avoid academic issues. - AI Attendance System`
+        );
+        const phone = s.phone_number.replace(/[^0-9]/g, "");
+        return {
+          name: s.full_name,
+          rollNumber: s.roll_number,
+          phone: s.phone_number,
+          percentage,
+          url: `https://wa.me/${phone}?text=${message}`,
+        };
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      toast({
-        title: "SMS Sent Successfully",
-        description: `Alert sent to ${withPhones.length} student(s) with low attendance.`,
-      });
+      setWhatsappLinks(links);
+      setShowWhatsappDialog(true);
     } catch (err: any) {
       toast({
-        title: "SMS Failed",
-        description: err.message || "Failed to send SMS. Check Fast2SMS configuration.",
+        title: "Error",
+        description: err.message || "Failed to generate WhatsApp links.",
         variant: "destructive",
       });
     } finally {
-      setSendingSms(false);
+      setLoadingLinks(false);
     }
   };
 
@@ -634,15 +641,14 @@ export default function Analytics() {
               </div>
               {(role === "teacher" || role === "admin") && (
                 <Button
-                  onClick={handleSendSmsToLowAttendance}
-                  disabled={sendingSms}
-                  variant="destructive"
-                  className="gap-2"
+                  onClick={handleWhatsappAlert}
+                  disabled={loadingLinks}
+                  className="gap-2 bg-[hsl(142,70%,40%)] hover:bg-[hsl(142,70%,35%)] text-white"
                 >
-                  {sendingSms ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" />Sending...</>
+                  {loadingLinks ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" />Loading...</>
                   ) : (
-                    <><MessageSquare className="h-4 w-4" />Send SMS to &lt;80%</>
+                    <><MessageSquare className="h-4 w-4" />WhatsApp &lt;80%</>
                   )}
                 </Button>
               )}
@@ -729,6 +735,39 @@ export default function Analytics() {
           </Card>
         </motion.div>
       </motion.div>
+
+      {/* WhatsApp Links Dialog */}
+      <Dialog open={showWhatsappDialog} onOpenChange={setShowWhatsappDialog}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-[hsl(142,70%,40%)]" />
+              WhatsApp Alert Links
+            </DialogTitle>
+            <DialogDescription>
+              Click each link to open WhatsApp with a pre-filled attendance alert message.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            {whatsappLinks.map((link, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+                <div>
+                  <p className="font-medium text-sm">{link.name}</p>
+                  <p className="text-xs text-muted-foreground">{link.rollNumber} • {link.phone} • {link.percentage}%</p>
+                </div>
+                <Button
+                  size="sm"
+                  className="gap-1 bg-[hsl(142,70%,40%)] hover:bg-[hsl(142,70%,35%)] text-white"
+                  onClick={() => window.open(link.url, "_blank")}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Send
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
