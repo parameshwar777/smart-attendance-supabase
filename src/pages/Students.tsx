@@ -53,6 +53,8 @@ interface Student {
   roll_number: string;
   full_name: string;
   email: string | null;
+  phone_number: string | null;
+  user_id: string | null;
   face_registered: boolean;
   section: {
     name: string;
