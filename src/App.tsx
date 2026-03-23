@@ -46,7 +46,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Public Route wrapper (redirect to dashboard if already logged in)
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, role, loading } = useAuth();
 
   if (loading) {
     return (
@@ -57,6 +57,9 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (user) {
+    if (role === "student") {
+      return <Navigate to="/student-dashboard" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
