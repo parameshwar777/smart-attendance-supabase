@@ -26,7 +26,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 // Protected Route wrapper
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: Array<"admin" | "teacher" | "student"> }) {
   const { user, role, loading } = useAuth();
 
   if (loading) {
@@ -39,6 +39,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Role-based redirect: students go to student dashboard
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
+    if (role === "student") {
+      return <Navigate to="/student-dashboard" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
