@@ -246,15 +246,14 @@ export default function Analytics() {
     setLoading(false);
   };
 
-  const handleSendSmsToLowAttendance = async () => {
+  const handleWhatsappAlert = async () => {
     const lowStudents = students.filter((s) => s.attendancePercentage < 80);
     if (lowStudents.length === 0) {
       toast({ title: "No students below 80%", description: "All students have good attendance." });
       return;
     }
 
-    // Get phone numbers for these students
-    setSendingSms(true);
+    setLoadingLinks(true);
     try {
       const { data: studentRecords } = await supabase
         .from("students")
@@ -265,35 +264,39 @@ export default function Analytics() {
       if (withPhones.length === 0) {
         toast({
           title: "No phone numbers",
-          description: "Students below 80% don't have phone numbers registered. Add phone numbers first.",
+          description: "Students below 80% don't have phone numbers registered.",
           variant: "destructive",
         });
-        setSendingSms(false);
+        setLoadingLinks(false);
         return;
       }
 
-      const phoneNumbers = withPhones.map((s: any) => s.phone_number);
-      const message = `Dear Student, your attendance percentage is below 80%. Please attend classes regularly to avoid academic issues. - AI Attendance System`;
-
-      const { data, error } = await supabase.functions.invoke("send-sms", {
-        body: { phone_numbers: phoneNumbers, message },
+      const links = withPhones.map((s: any) => {
+        const student = lowStudents.find((ls) => ls.id === s.id);
+        const percentage = student?.attendancePercentage ?? 0;
+        const message = encodeURIComponent(
+          `Dear ${s.full_name} (${s.roll_number}), your attendance is ${percentage}% which is below 80%. Please attend classes regularly to avoid academic issues. - AI Attendance System`
+        );
+        const phone = s.phone_number.replace(/[^0-9]/g, "");
+        return {
+          name: s.full_name,
+          rollNumber: s.roll_number,
+          phone: s.phone_number,
+          percentage,
+          url: `https://wa.me/${phone}?text=${message}`,
+        };
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      toast({
-        title: "SMS Sent Successfully",
-        description: `Alert sent to ${withPhones.length} student(s) with low attendance.`,
-      });
+      setWhatsappLinks(links);
+      setShowWhatsappDialog(true);
     } catch (err: any) {
       toast({
-        title: "SMS Failed",
-        description: err.message || "Failed to send SMS. Check Fast2SMS configuration.",
+        title: "Error",
+        description: err.message || "Failed to generate WhatsApp links.",
         variant: "destructive",
       });
     } finally {
-      setSendingSms(false);
+      setLoadingLinks(false);
     }
   };
 
