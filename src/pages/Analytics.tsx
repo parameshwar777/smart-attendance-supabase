@@ -745,26 +745,45 @@ export default function Analytics() {
               WhatsApp Alert Links
             </DialogTitle>
             <DialogDescription>
-              Click each link to open WhatsApp with a pre-filled attendance alert message.
+              Click "Send All" to open each student's WhatsApp chat one by one (with a 1-second delay between each to avoid browser blocks), or click individual "Send" buttons.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 mt-4">
-            {whatsappLinks.map((link, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
-                <div>
-                  <p className="font-medium text-sm">{link.name}</p>
-                  <p className="text-xs text-muted-foreground">{link.rollNumber} • {link.phone} • {link.percentage}%</p>
+          <div className="mt-4 space-y-4">
+            <Button
+              className="w-full gap-2 bg-[hsl(142,70%,40%)] hover:bg-[hsl(142,70%,35%)] text-white"
+              onClick={() => {
+                whatsappLinks.forEach((link, index) => {
+                  setTimeout(() => {
+                    window.open(link.url, "_blank");
+                  }, index * 1200);
+                });
+                toast({
+                  title: "Opening WhatsApp chats",
+                  description: `Opening ${whatsappLinks.length} chats. Please allow popups if prompted.`,
+                });
+              }}
+            >
+              <MessageSquare className="h-4 w-4" />
+              Send All ({whatsappLinks.length} students)
+            </Button>
+            <div className="space-y-3">
+              {whatsappLinks.map((link, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+                  <div>
+                    <p className="font-medium text-sm">{link.name}</p>
+                    <p className="text-xs text-muted-foreground">{link.rollNumber} • {link.phone} • {link.percentage}%</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="gap-1 bg-[hsl(142,70%,40%)] hover:bg-[hsl(142,70%,35%)] text-white"
+                    onClick={() => window.open(link.url, "_blank")}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Send
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  className="gap-1 bg-[hsl(142,70%,40%)] hover:bg-[hsl(142,70%,35%)] text-white"
-                  onClick={() => window.open(link.url, "_blank")}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Send
-                </Button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
