@@ -329,6 +329,21 @@ export default function Students() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              {!student.user_id && (
+                                <DropdownMenuItem onClick={() => {
+                                  setSelectedStudent(student);
+                                  setLoginDialogOpen(true);
+                                }}>
+                                  <KeyRound className="mr-2 h-4 w-4" />
+                                  Create Login
+                                </DropdownMenuItem>
+                              )}
+                              {student.user_id && (
+                                <DropdownMenuItem disabled>
+                                  <KeyRound className="mr-2 h-4 w-4 text-muted-foreground" />
+                                  <span className="text-muted-foreground">Login Active</span>
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
