@@ -68,6 +68,12 @@ interface Student {
   };
 }
 
+interface EditForm {
+  full_name: string;
+  email: string;
+  phone_number: string;
+}
+
 export default function Students() {
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
