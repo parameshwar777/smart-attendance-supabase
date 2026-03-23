@@ -47,6 +47,8 @@ import {
   GraduationCap,
   PieChart as PieChartIcon,
   Activity,
+  MessageSquare,
+  Loader2,
 } from "lucide-react";
 
 interface StudentAnalytics {
