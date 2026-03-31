@@ -225,10 +225,10 @@ export function SubjectMapping() {
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm">{subject.name}</p>
-                  <p className="text-xs text-muted-foreground">{subject.code}</p>
+                  <p className="text-xs text-muted-foreground">{subject.code} · Section {subject.sectionName}</p>
                   {subject.teacherName && (
                     <Badge variant="secondary" className="mt-1 text-xs">
-                      {subject.teacherName}
+                      👨‍🏫 {subject.teacherName}
                     </Badge>
                   )}
                 </div>
