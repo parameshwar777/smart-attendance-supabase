@@ -146,8 +146,8 @@ export default function StudentSignup() {
 
       if (studentErr) throw studentErr;
 
-      // 2. Create auth account via edge function
-      const { data: authResult, error: authErr } = await supabase.functions.invoke("create-student-account", {
+      // 2. Create auth account via edge function (no auth required)
+      const { data: authResult, error: authErr } = await supabase.functions.invoke("register-student", {
         body: { student_id: student.id, password: formData.password },
       });
 
