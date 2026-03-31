@@ -262,6 +262,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 lg:pt-0 pt-16 overflow-auto">
+        <CollegeHeader showSubtitle={false} />
         <div className="p-6 lg:p-8">{children}</div>
       </main>
     </div>

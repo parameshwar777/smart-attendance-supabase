@@ -88,6 +88,14 @@ function AppRoutes() {
           </PublicRoute>
         }
       />
+      <Route
+        path="/signup"
+        element={
+          <PublicRoute>
+            <StudentSignup />
+          </PublicRoute>
+        }
+      />
 
       {/* Protected routes - Admin & Teacher only */}
       <Route

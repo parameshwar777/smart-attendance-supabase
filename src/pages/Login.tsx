@@ -123,7 +123,7 @@ export default function Login() {
                   to="/signup"
                   className="font-medium text-accent hover:underline"
                 >
-                  Contact admin
+                  Register as Student
                 </Link>
               </div>
             </CardContent>
