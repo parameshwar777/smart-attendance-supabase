@@ -49,7 +49,7 @@ const navItems: NavItem[] = [
   { label: "Classes", href: "/classes", icon: Calendar, roles: ["admin", "teacher"] },
   { label: "Take Attendance", href: "/attendance", icon: ClipboardCheck, roles: ["teacher"] },
   { label: "Analytics", href: "/analytics", icon: BarChart3, roles: ["admin", "teacher"] },
-  { label: "My Analytics", href: "/student-dashboard", icon: BarChart3, roles: ["student"] },
+  
   { label: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
 
