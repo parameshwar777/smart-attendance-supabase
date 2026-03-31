@@ -198,6 +198,42 @@ export type Database = {
           },
         ]
       }
+      student_subjects: {
+        Row: {
+          created_at: string
+          id: string
+          student_id: string
+          subject_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          student_id: string
+          subject_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          student_id?: string
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_subjects_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_subjects_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           created_at: string
