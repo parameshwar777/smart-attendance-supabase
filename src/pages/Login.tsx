@@ -46,8 +46,7 @@ export default function Login() {
     <div className="min-h-screen bg-background flex flex-col">
       <CollegeHeader />
 
-      {/* Main content */}
-      <main className="relative z-10 flex-1 flex items-center justify-center p-6">
+      <main className="flex-1 flex items-center justify-center p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
