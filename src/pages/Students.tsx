@@ -105,50 +105,91 @@ export default function Students() {
 
   const fetchStudents = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("students")
-      .select(`
-        id,
-        roll_number,
-        full_name,
-        email,
-        phone_number,
-        user_id,
-        face_registered,
-        sections (
-          name,
-          years (
+    try {
+      let studentIds: string[] | null = null;
+
+      // If teacher, only show students mapped to their subjects
+      if (role === "teacher" && user) {
+        // Get teacher's subjects
+        const { data: teacherSubjects } = await supabase
+          .from("subjects")
+          .select("id")
+          .eq("teacher_id", user.id);
+
+        const subjectIds = (teacherSubjects || []).map(s => s.id);
+
+        if (subjectIds.length > 0) {
+          // Get student IDs mapped to these subjects
+          const { data: mappings } = await supabase
+            .from("student_subjects")
+            .select("student_id")
+            .in("subject_id", subjectIds);
+
+          studentIds = [...new Set((mappings || []).map(m => m.student_id))];
+        } else {
+          studentIds = [];
+        }
+      }
+
+      let query = supabase
+        .from("students")
+        .select(`
+          id,
+          roll_number,
+          full_name,
+          email,
+          phone_number,
+          user_id,
+          face_registered,
+          sections (
             name,
-            departments (
+            years (
               name,
-              code
+              departments (
+                name,
+                code
+              )
             )
           )
-        )
-      `)
-      .order("roll_number");
+        `)
+        .order("roll_number");
 
-    if (!error && data) {
-      const formattedStudents = data.map((s: any) => ({
-        id: s.id,
-        roll_number: s.roll_number,
-        full_name: s.full_name,
-        email: s.email,
-        phone_number: s.phone_number || null,
-        user_id: s.user_id || null,
-        face_registered: s.face_registered,
-        section: {
-          name: s.sections?.name || "N/A",
-          year: {
-            name: s.sections?.years?.name || "N/A",
-            department: {
-              name: s.sections?.years?.departments?.name || "N/A",
-              code: s.sections?.years?.departments?.code || "N/A",
+      // Filter by mapped students for teachers
+      if (studentIds !== null) {
+        if (studentIds.length === 0) {
+          setStudents([]);
+          setLoading(false);
+          return;
+        }
+        query = query.in("id", studentIds);
+      }
+
+      const { data, error } = await query;
+
+      if (!error && data) {
+        const formattedStudents = data.map((s: any) => ({
+          id: s.id,
+          roll_number: s.roll_number,
+          full_name: s.full_name,
+          email: s.email,
+          phone_number: s.phone_number || null,
+          user_id: s.user_id || null,
+          face_registered: s.face_registered,
+          section: {
+            name: s.sections?.name || "N/A",
+            year: {
+              name: s.sections?.years?.name || "N/A",
+              department: {
+                name: s.sections?.years?.departments?.name || "N/A",
+                code: s.sections?.years?.departments?.code || "N/A",
+              },
             },
           },
-        },
-      }));
-      setStudents(formattedStudents);
+        }));
+        setStudents(formattedStudents);
+      }
+    } catch (err) {
+      console.error("Error fetching students:", err);
     }
     setLoading(false);
   };
