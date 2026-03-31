@@ -37,6 +37,7 @@ import {
   Clock,
   Activity,
 } from "lucide-react";
+import { SubjectMapping } from "@/components/student/SubjectMapping";
 
 interface AttendanceRecord {
   id: string;
