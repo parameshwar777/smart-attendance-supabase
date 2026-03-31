@@ -76,6 +76,7 @@ interface EditForm {
 }
 
 export default function Students() {
+  const { user, role } = useAuth();
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
