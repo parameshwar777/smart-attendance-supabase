@@ -130,49 +130,39 @@ export default function StudentSignup() {
 
     setLoading(true);
     try {
-      // 1. Create student record first
-      const { data: student, error: studentErr } = await supabase
-        .from("students")
-        .insert({
+      // 1. Create student + auth account via edge function (handles RLS bypass)
+      const { data: result, error: fnErr } = await supabase.functions.invoke("register-student", {
+        body: {
           full_name: formData.fullName,
           roll_number: formData.rollNumber,
           email: formData.email || null,
           phone_number: formData.phoneNumber || null,
           section_id: formData.sectionId,
+          password: formData.password,
           face_registered: capturedImages.length >= 5,
-        })
-        .select()
-        .single();
-
-      if (studentErr) throw studentErr;
-
-      // 2. Create auth account via edge function (no auth required)
-      const { data: authResult, error: authErr } = await supabase.functions.invoke("register-student", {
-        body: { student_id: student.id, password: formData.password },
+        },
       });
 
-      if (authErr) throw authErr;
-      if (authResult?.error) throw new Error(authResult.error);
+      if (fnErr) throw fnErr;
+      if (result?.error) throw new Error(result.error);
 
-      // 3. If face images captured, call face training API
-      if (capturedImages.length >= 5) {
+      const studentId = result.student_id;
+
+      // 2. If face images captured, call face training API
+      if (capturedImages.length >= 5 && studentId) {
         try {
           const baseUrl = import.meta.env.VITE_FACE_API_URL || "http://localhost:8000";
-          const { data: { session } } = await supabase.auth.getSession();
           await fetch(`${baseUrl}/api/face-training`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": session?.access_token ? `Bearer ${session.access_token}` : "",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              student_id: student.id,
+              student_id: studentId,
               roll_number: formData.rollNumber,
               images: capturedImages.map(img => img.dataUrl),
             }),
           });
         } catch {
-          // Face training API might not be available, student record is still created
+          // Face training API might not be available
         }
       }
 
