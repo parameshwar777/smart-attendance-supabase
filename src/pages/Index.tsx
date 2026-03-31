@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { CollegeHeader } from "@/components/layout/CollegeHeader";
 import {
   GraduationCap,
   Camera,
