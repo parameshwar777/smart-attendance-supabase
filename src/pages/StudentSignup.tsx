@@ -168,7 +168,7 @@ export default function StudentSignup() {
 
       toast({
         title: "Registration Successful!",
-        description: `Account created for ${formData.fullName}. Login email: ${authResult?.email}`,
+        description: `Account created for ${formData.fullName}. Login email: ${result?.email}`,
       });
 
       navigate("/login");
