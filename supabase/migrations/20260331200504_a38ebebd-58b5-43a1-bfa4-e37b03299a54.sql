@@ -1,0 +1,1 @@
+CREATE POLICY "Public can read subjects" ON public.subjects FOR SELECT TO anon USING (true);
