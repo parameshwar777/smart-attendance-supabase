@@ -43,29 +43,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex flex-col">
-      {/* Decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
-      </div>
-
-      {/* Header */}
-      <header className="relative z-10 p-6">
-        <Link to="/" className="flex items-center gap-3 w-fit">
-          <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center shadow-glow">
-            <GraduationCap className="h-6 w-6 text-accent-foreground" />
-          </div>
-          <div>
-            <h1 className="font-display font-bold text-primary-foreground text-lg">
-              AI Attendance System
-            </h1>
-            <p className="text-xs text-primary-foreground/60">
-              Multi-Face Recognition & Analytics
-            </p>
-          </div>
-        </Link>
-      </header>
+    <div className="min-h-screen bg-background flex flex-col">
+      <CollegeHeader />
 
       {/* Main content */}
       <main className="relative z-10 flex-1 flex items-center justify-center p-6">
