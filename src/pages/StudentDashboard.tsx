@@ -232,6 +232,11 @@ export default function StudentDashboard() {
           />
         </motion.div>
 
+        {/* Subject Mapping */}
+        <motion.div variants={itemVariants}>
+          <SubjectMapping />
+        </motion.div>
+
         {/* Charts Row */}
         <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-2">
           {/* Overall Pie */}
