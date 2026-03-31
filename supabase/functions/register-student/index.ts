@@ -16,11 +16,11 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    const { student_id, password } = await req.json();
+    const { full_name, roll_number, email, phone_number, section_id, password, face_registered } = await req.json();
 
-    if (!student_id || !password) {
+    if (!full_name || !roll_number || !section_id || !password) {
       return new Response(
-        JSON.stringify({ error: "student_id and password are required" }),
+        JSON.stringify({ error: "full_name, roll_number, section_id, and password are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -32,36 +32,29 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get student details
-    const { data: student, error: studentError } = await supabase
+    // Check if roll number already exists
+    const { data: existing } = await supabase
       .from("students")
-      .select("id, roll_number, full_name, email, user_id")
-      .eq("id", student_id)
-      .single();
+      .select("id, user_id")
+      .eq("roll_number", roll_number)
+      .maybeSingle();
 
-    if (studentError || !student) {
+    if (existing?.user_id) {
       return new Response(
-        JSON.stringify({ error: "Student not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (student.user_id) {
-      return new Response(
-        JSON.stringify({ error: "Student already has a login account" }),
+        JSON.stringify({ error: "This roll number already has an account" }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Generate email from roll number
-    const studentEmail = `${student.roll_number.toLowerCase()}@attendance.edu`;
+    const studentEmail = `${roll_number.toLowerCase()}@attendance.edu`;
 
-    // Create auth user
+    // Create auth user first
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: studentEmail,
       password: password,
       email_confirm: true,
-      user_metadata: { full_name: student.full_name },
+      user_metadata: { full_name },
     });
 
     if (authError) {
@@ -79,17 +72,52 @@ Deno.serve(async (req) => {
       role: "student",
     });
 
-    // Link student record to auth user
-    await supabase
-      .from("students")
-      .update({ user_id: newUserId, email: studentEmail })
-      .eq("id", student_id);
+    let studentId: string;
+
+    if (existing) {
+      // Update existing student record
+      await supabase
+        .from("students")
+        .update({
+          full_name,
+          email: studentEmail,
+          phone_number: phone_number || null,
+          user_id: newUserId,
+          face_registered: face_registered || false,
+        })
+        .eq("id", existing.id);
+      studentId = existing.id;
+    } else {
+      // Create new student record
+      const { data: newStudent, error: studentError } = await supabase
+        .from("students")
+        .insert({
+          full_name,
+          roll_number,
+          email: studentEmail,
+          phone_number: phone_number || null,
+          section_id,
+          user_id: newUserId,
+          face_registered: face_registered || false,
+        })
+        .select()
+        .single();
+
+      if (studentError) {
+        return new Response(
+          JSON.stringify({ error: studentError.message }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      studentId = newStudent.id;
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
+        student_id: studentId,
         email: studentEmail,
-        message: `Login created for ${student.full_name}`,
+        message: `Account created for ${full_name}`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
