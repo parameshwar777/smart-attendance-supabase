@@ -28,6 +28,7 @@ import {
   Calendar,
   ChevronRight,
 } from "lucide-react";
+import { CollegeHeader } from "@/components/layout/CollegeHeader";
 
 interface NavItem {
   label: string;
