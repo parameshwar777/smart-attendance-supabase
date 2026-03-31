@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { CollegeHeader } from "@/components/layout/CollegeHeader";
 import {
   GraduationCap,
   Camera,
@@ -57,34 +58,26 @@ const benefits = [
 export default function Index() {
   return (
     <div className="min-h-screen bg-background">
+      {/* College Header */}
+      <CollegeHeader />
+
       {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-lg">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-              <GraduationCap className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="font-display font-bold text-foreground">AI Attendance</h1>
-              <p className="text-xs text-muted-foreground">Smart Analytics System</p>
-            </div>
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-lg">
+        <div className="container flex h-14 items-center justify-end gap-4">
+          <Link to="/login">
+            <Button variant="ghost">Sign in</Button>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/login">
-              <Button variant="ghost">Sign in</Button>
-            </Link>
-            <Link to="/login">
-              <Button className="gap-2">
-                Get Started
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
+          <Link to="/signup">
+            <Button className="gap-2">
+              Register as Student
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
+      <section className="relative pt-16 pb-20 lg:pt-24 lg:pb-32 overflow-hidden">
         {/* Background decorations */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
