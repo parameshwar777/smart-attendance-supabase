@@ -37,6 +37,7 @@ import {
   Clock,
   Activity,
 } from "lucide-react";
+import { SubjectMapping } from "@/components/student/SubjectMapping";
 
 interface AttendanceRecord {
   id: string;
@@ -229,6 +230,11 @@ export default function StudentDashboard() {
             icon={overallStats.percentage >= 80 ? TrendingUp : TrendingDown}
             variant={overallStats.percentage >= 80 ? "success" : overallStats.percentage >= 70 ? "warning" : "danger"}
           />
+        </motion.div>
+
+        {/* Subject Mapping */}
+        <motion.div variants={itemVariants}>
+          <SubjectMapping />
         </motion.div>
 
         {/* Charts Row */}
