@@ -66,7 +66,18 @@ export default function Classes() {
 
   const fetchClasses = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+
+    // Get user role
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId!)
+      .maybeSingle();
+
+    let query = supabase
       .from("classes")
       .select(`
         id,
@@ -74,12 +85,20 @@ export default function Classes() {
         start_time,
         end_time,
         status,
+        teacher_id,
         subjects (
           name,
           code
         )
       `)
       .order("class_date", { ascending: false });
+
+    // Teachers only see their own classes
+    if (roleData?.role === "teacher") {
+      query = query.eq("teacher_id", userId!);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       const formattedClasses = data.map((c: any) => ({
