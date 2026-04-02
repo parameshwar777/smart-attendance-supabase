@@ -26,6 +26,7 @@ interface DashboardStats {
   todayAttendance: number;
   averageAttendance: number;
   atRiskStudents: number;
+  totalSectionStudents: number;
 }
 
 export default function Dashboard() {
@@ -37,6 +38,7 @@ export default function Dashboard() {
     todayAttendance: 0,
     averageAttendance: 0,
     atRiskStudents: 0,
+    totalSectionStudents: 0,
   });
   const [todaysClasses, setTodaysClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,27 +49,65 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch students count
-      const { count: studentsCount } = await supabase
-        .from("students")
-        .select("*", { count: "exact", head: true });
+      let mappedStudentsCount = 0;
+      let totalSectionStudents = 0;
 
-      // Fetch today's classes
+      if (role === "teacher" && user) {
+        // Get subjects assigned to this teacher
+        const { data: teacherSubjects } = await supabase
+          .from("subjects")
+          .select("id, section_id")
+          .eq("teacher_id", user.id);
+
+        const subjectIds = teacherSubjects?.map(s => s.id) || [];
+        const sectionIds = [...new Set(teacherSubjects?.map(s => s.section_id) || [])];
+
+        // Count students mapped to teacher's subjects
+        if (subjectIds.length > 0) {
+          const { count } = await supabase
+            .from("student_subjects")
+            .select("*", { count: "exact", head: true })
+            .in("subject_id", subjectIds);
+          mappedStudentsCount = count || 0;
+        }
+
+        // Count total students in teacher's sections (year-level)
+        if (sectionIds.length > 0) {
+          const { count } = await supabase
+            .from("students")
+            .select("*", { count: "exact", head: true })
+            .in("section_id", sectionIds);
+          totalSectionStudents = count || 0;
+        }
+      } else {
+        // Admin sees all students
+        const { count } = await supabase
+          .from("students")
+          .select("*", { count: "exact", head: true });
+        mappedStudentsCount = count || 0;
+        totalSectionStudents = count || 0;
+      }
+
+      // Fetch today's classes (filtered for teachers)
       const today = new Date().toISOString().split("T")[0];
-      const { data: classesData } = await supabase
+      let classesQuery = supabase
         .from("classes")
-        .select(`
-          *,
-          subjects (name, code)
-        `)
+        .select(`*, subjects (name, code)`)
         .eq("class_date", today);
 
+      if (role === "teacher" && user) {
+        classesQuery = classesQuery.eq("teacher_id", user.id);
+      }
+
+      const { data: classesData } = await classesQuery;
+
       setStats({
-        totalStudents: studentsCount || 0,
+        totalStudents: mappedStudentsCount,
         totalClasses: classesData?.length || 0,
         todayAttendance: 0,
-        averageAttendance: 85, // Placeholder
+        averageAttendance: 85,
         atRiskStudents: 0,
+        totalSectionStudents,
       });
 
       setTodaysClasses(classesData || []);
@@ -117,10 +157,11 @@ export default function Dashboard() {
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
         >
           <StatCard
-            title="Total Students"
+            title={role === "teacher" ? "My Students" : "Total Students"}
             value={stats.totalStudents}
             icon={GraduationCap}
             variant="default"
+            subtitle={role === "teacher" ? `${stats.totalSectionStudents} in section` : undefined}
           />
           <StatCard
             title="Today's Classes"

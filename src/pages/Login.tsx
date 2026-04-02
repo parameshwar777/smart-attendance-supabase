@@ -11,7 +11,7 @@ import { CollegeHeader } from "@/components/layout/CollegeHeader";
 import { GraduationCap, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,12 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    // If input doesn't contain @, treat as roll number and append @attendance.edu
+    const loginEmail = identifier.includes("@")
+      ? identifier
+      : `${identifier.toLowerCase()}@attendance.edu`;
+
+    const { error } = await signIn(loginEmail, password);
 
     if (error) {
       toast({
@@ -63,16 +68,19 @@ export default function Login() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="identifier">Email or Roll Number</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@university.edu"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="identifier"
+                    type="text"
+                    placeholder="Roll number or email"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     required
                     className="h-11"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Students: use your roll number (e.g. 2024CS001)
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
