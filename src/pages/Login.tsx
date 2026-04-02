@@ -11,7 +11,7 @@ import { CollegeHeader } from "@/components/layout/CollegeHeader";
 import { GraduationCap, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,12 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    // If input doesn't contain @, treat as roll number and append @attendance.edu
+    const loginEmail = identifier.includes("@")
+      ? identifier
+      : `${identifier.toLowerCase()}@attendance.edu`;
+
+    const { error } = await signIn(loginEmail, password);
 
     if (error) {
       toast({
