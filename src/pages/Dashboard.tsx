@@ -157,10 +157,11 @@ export default function Dashboard() {
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
         >
           <StatCard
-            title="Total Students"
+            title={role === "teacher" ? "My Students" : "Total Students"}
             value={stats.totalStudents}
             icon={GraduationCap}
             variant="default"
+            subtitle={role === "teacher" ? `${stats.totalSectionStudents} in section` : undefined}
           />
           <StatCard
             title="Today's Classes"

@@ -68,16 +68,19 @@ export default function Login() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="identifier">Email or Roll Number</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@university.edu"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="identifier"
+                    type="text"
+                    placeholder="Roll number or email"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     required
                     className="h-11"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Students: use your roll number (e.g. 2024CS001)
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
