@@ -26,6 +26,7 @@ interface DashboardStats {
   todayAttendance: number;
   averageAttendance: number;
   atRiskStudents: number;
+  totalSectionStudents: number;
 }
 
 export default function Dashboard() {
