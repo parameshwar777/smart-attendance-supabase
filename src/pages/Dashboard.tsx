@@ -38,6 +38,7 @@ export default function Dashboard() {
     todayAttendance: 0,
     averageAttendance: 0,
     atRiskStudents: 0,
+    totalSectionStudents: 0,
   });
   const [todaysClasses, setTodaysClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
