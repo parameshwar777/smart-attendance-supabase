@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.delete-teacher]
 verify_jwt = false
+
+[functions.register-student]
+verify_jwt = false
